@@ -1,0 +1,212 @@
+#!/bin/sh
+
+# =============================================================================================
+# =============================================================================================
+# DOC CAC GIA TRI TU FILE PARAMETER
+# =============================================================================================
+# =============================================================================================
+
+# Doc loai cau truc lattice spin
+# Natx
+cut -c31-32 parameter.in > parameter_file_giantiep1.dat
+i=1
+while [ $i -le 13 ]
+do
+read value_natx
+i=$(echo "scale=0; $i+1" | bc)
+done < parameter_file_giantiep1.dat
+rm parameter_file_giantiep1.dat
+
+# Naty
+cut -c36-37 parameter.in > parameter_file_giantiep2.dat
+i=1
+while [ $i -le 13 ]
+do
+read value_naty
+i=$(echo "scale=0; $i+1" | bc)
+done < parameter_file_giantiep2.dat
+rm parameter_file_giantiep2.dat
+
+# Natz
+cut -c41-42 parameter.in > parameter_file_giantiep3.dat
+i=1
+while [ $i -le 13 ]
+do
+read value_natz
+i=$(echo "scale=0; $i+1" | bc)
+done < parameter_file_giantiep3.dat
+rm parameter_file_giantiep3.dat
+
+#=============================================================================================
+# Loai bo, chi lay tu cot 31 den cot 35 cua file parameter.in
+cut -c31-35 parameter.in > parameter_file_giantiep.dat
+
+# Doc gia tri dua vao so dong
+i=1
+while [ $i -le 30 ]
+do
+read value
+
+if [ $i -eq 6 ]
+then
+motif_struct=$value
+fi
+
+if [ $i -eq 18 ]
+then
+value_D1=$value
+fi
+
+if [ $i -eq 19 ]
+then
+value_D2=$value
+fi
+
+if [ $i -eq 20 ]
+then
+value_D=$value
+fi
+
+if [ $i -eq 23 ]
+then
+value_J1v=$value
+fi
+
+if [ $i -eq 25 ]
+then
+value_J2v=$value
+fi
+
+if [ $i -eq 27 ]
+then
+value_J3v=$value
+fi
+
+i=$(echo "scale=0; $i+1" | bc)
+done < parameter_file_giantiep.dat
+
+rm parameter_file_giantiep.dat
+
+echo "Natx = " $value_natx
+echo "Naty = " $value_naty
+echo "Natz = " $value_natz
+echo "motif_struct: " $motif_struct
+echo "value_j1v: " $value_J1v
+echo "value_j2v: " $value_J2v
+echo "value_j3v: " $value_J3v
+echo "value_D1: " $value_D1
+echo "value_D2: " $value_D2
+echo "value_D: " $value_D
+
+
+# =============================================================================================
+# =============================================================================================
+# GAN CAC DAI LUONG CAN VE DO THI
+# =============================================================================================
+# =============================================================================================
+
+for i in 1 2 3 4 5 6 7 8 9 10
+do
+
+# Gan cac bien cua Nang luong E
+if [ $i -eq 1 ]
+then
+name_y="E"
+number_culomn=2
+file_average_dat="average_thermal.dat"
+fi
+
+# Gan cac bien cua Tu hoa M
+if [ $i -eq 2 ]
+then
+name_y="M"
+number_culomn=3
+file_average_dat="average_thermal.dat"
+fi
+
+# Gan cac bien cua Cv
+if [ $i -eq 3 ]
+then
+name_y="Cv"
+number_culomn=4
+file_average_dat="average_thermal.dat"
+fi
+
+
+# Gan cac bien cua Ksi
+if [ $i -eq 4 ]
+then
+name_y="Ksi"
+number_culomn=5
+file_average_dat="average_thermal.dat"
+fi
+
+# Gan cac bien cua Dien tro suat R
+if [ $i -eq 5 ]
+then
+name_y="R"
+number_culomn=2
+file_average_dat="average_transport.dat"
+fi
+
+# Gan cac bien cua Mz1
+if [ $i -eq 6 ]
+then
+name_y="Mz1"
+number_culomn=2
+file_average_dat="M_average_thermal.dat"
+fi
+
+# Gan cac bien cua Mz2
+if [ $i -eq 7 ]
+then
+name_y="Mz2"
+number_culomn=3
+file_average_dat="M_average_thermal.dat"
+fi
+
+# Gan cac bien cua Mz_AF2
+if [ $i -eq 8 ]
+then
+name_y="Mz3"
+number_culomn=4
+file_average_dat="M_average_thermal.dat"
+fi
+
+# Gan cac bien cua Mz4
+if [ $i -eq 9 ]
+then
+name_y="Mz4"
+number_culomn=5
+file_average_dat="M_average_thermal.dat"
+fi
+
+# Gan cac bien cua Mz5
+if [ $i -eq 10 ]
+then
+name_y="Mz5"
+number_culomn=6
+file_average_dat="M_average_thermal.dat"
+fi
+
+# =============================================================================================
+# =============================================================================================
+# VE DO THI
+# =============================================================================================
+# =============================================================================================
+
+gnuplot -persist << EOF
+set term postscript enhanced color "Times-Roman" 26
+set autoscale
+set key right top
+set pointsize 1
+set xlabel "T"
+set ylabel "$name_y"
+set output "$name_y in T.eps"
+set title "18x18x8: J1= $value_J1v , J2= $value_J2v , D1= $value_D1, D2= $value_D2, D= $value_D"
+plot "$file_average_dat" u 1:$number_culomn notitle w p lt -1 pt 7
+
+EOF
+done
+
+

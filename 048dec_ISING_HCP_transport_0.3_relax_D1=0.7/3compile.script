@@ -1,0 +1,5 @@
+#!/bin/sh
+
+gfortran -Wall -fdefault-integer-8 -fdefault-real-8 main_Ising_HCP_AF.f90
+#qsub 0job
+#time ./a.out

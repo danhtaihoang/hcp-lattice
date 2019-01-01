@@ -1,0 +1,204 @@
+#!/bin/sh
+# Chuong ve dong thoi 2 hoac 3 do thi (dung de tim hieu ung)
+# this is script-shell for collection result from osaka
+
+# ===========================================================================================
+# Lua chon buoc tien hanh
+# ===========================================================================================
+
+echo -n "Moi nhap thu tu buoc (1 neu la compile, 2 neu la tong hop ket qua, " 
+echo -n "3 neu la ve do thi Energy_time): "
+read number_buoc
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# ===========================================================================================
+# ===========================================================================================
+#  ****************** BUOC COMPILE ******************
+# ===========================================================================================
+# ===========================================================================================
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+# ===========================================================================================
+# Nhap cac gia tri vao
+# ===========================================================================================
+if [ $number_buoc -eq 1 ]
+then
+echo "BUOC COMPILE"
+
+clear
+rm -r bank_config_out
+rm -r config_out
+rm *.dat
+rm a.out
+
+echo -n "Value Tmin = "
+read Tmin
+
+echo -n "Value Tmax = "
+read Tmax
+
+echo -n "Value nT = "
+read nT
+
+if [ $nT -eq 1 ]
+then
+delT=0
+else
+delT=$(echo "scale=4; ($Tmax-$Tmin)/($nT-1)" | bc)
+fi
+echo "delT=$delT"
+
+# ===========================================================================================
+# Tao cac thu muc, compile lan luot tung thu muc
+# ===========================================================================================
+mkdir a
+cp main_Ising_HCP_AF.f90 a
+cp parameter.in a
+cp job a
+
+i_folder=1
+while [ $i_folder -le $nT ]
+do
+cp -r a $i_folder
+
+T=$(echo "scale=4; $Tmin+($i_folder-1)*$delT" | bc)
+
+sed -i "s/'temp_min                  '  1./'temp_min                  '  $T/g" $i_folder/parameter.in
+
+echo "running folder $i_folder"
+cd $i_folder
+gfortran -Wall -fdefault-integer-8 -fdefault-real-8 main_Ising_HCP_AF.f90
+qsub job
+#./a.out
+cd ..
+
+i_folder=$(echo "scale=0; $i_folder+1" | bc)
+
+done
+
+rm -r a
+
+fi
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# ===========================================================================================
+# ===========================================================================================
+#  ****************** BUOC TONG HOP KET QUA ******************
+# ===========================================================================================
+# ===========================================================================================
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+# ===========================================================================================
+# Nhap cac gia tri vao
+# ===========================================================================================
+if [ $number_buoc -eq 2 ]
+then
+echo "BUOC TONG HOP KET QUA SAU KHI COMPILE"
+
+echo -n "Number of value temperature nT = "
+read nT
+
+# ===========================================================================================
+# Tien hanh tong hop ket qua
+# ===========================================================================================
+
+echo "COPY TO bank_config_out AND config_out and"
+mkdir bank_config_out
+mkdir config_out
+cp 1/config_out/conf_3D_transport_FCC_10000021.pdb config_out/
+cp 1/config_out/conf_3D_transport_FCC_ini_10000021.pdb config_out/
+
+i=1
+while [ $i -le $nT ]
+do
+number=$(echo "scale=0;10000000+$i" | bc)
+cp $i/bank_config_out/struct_3D_thermalisation_FCC_10000001.pdb bank_config_out/struct_3D_thermalisation_FCC_$number.pdb
+cp $i/config_out/conf_3D_thermalisation_FCC_10000001.pdb config_out/conf_3D_thermalisation_FCC_$number.pdb
+cat $i/average_thermal.dat >> average_thermal.dat
+cat $i/M_average_thermal.dat >> M_average_thermal.dat
+cat $i/average_transport.dat >> average_transport.dat
+rm -r $i
+i=$(echo "scale=0; $i+1" | bc)
+done
+
+fi
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# ===========================================================================================
+# ===========================================================================================
+#  ****************** BUOC VE DO THI ******************
+# ===========================================================================================
+# ===========================================================================================
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+# ===========================================================================================
+# Nhap cac gia tri vao
+# ===========================================================================================
+
+if [ $number_buoc -eq 3 ]
+then
+echo "BUOC VE DO THI ENERGY IN TIME"
+
+rm *.ps
+
+# ===========================================================================================
+# Nhap cac gia tri vao
+# ===========================================================================================
+
+rm *.ps
+
+echo -n "Value Tmin = "
+read Tmin
+
+echo -n "Value Tmax = "
+read Tmax
+
+echo -n "Value nT = "
+read nT
+
+if [ $nT -eq 1 ]
+then
+delT=0
+else
+delT=$(echo "scale=4; ($Tmax-$Tmin)/($nT-1)" | bc)
+fi
+
+# ===========================================================================================
+# Ve lan luot cac do thi
+# ===========================================================================================
+
+i=1
+
+while [ $i -le $nT ]
+do
+cp $i_folder/energy_time.dat energy_time_$i_folder.dat
+
+T=$(echo "scale=4; $Tmin+($i-1)*$delT" | bc)
+
+gnuplot -persist << EOF
+set term postscript enhanced color "Times-Roman" 14
+set autoscale
+set key right top
+set pointsize 1
+set xlabel "time"
+set ylabel "E"
+set output "Energy_in_time_at_T=$T.ps"
+set title "Energy in time at T=$T"
+plot "energy_time_$i.dat" u 1:2 notitle w p lt 3 pt 7
+EOF
+
+rm -r $i
+rm -r energy_time_$i.dat
+
+i=$(echo "scale=0; $i+1" | bc)
+
+done
+
+fi
+
+# ================================= THE END ============================================
+
+
+
+
+
+

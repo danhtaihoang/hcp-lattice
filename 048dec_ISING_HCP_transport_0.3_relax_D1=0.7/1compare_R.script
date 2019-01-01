@@ -1,0 +1,22 @@
+#!/bin/sh
+
+gnuplot -persist << EOF
+set term postscript enhanced color "Times-Roman" 14
+set autoscale
+set key right top
+set pointsize 1
+set xlabel "T"
+set ylabel "R"
+set output "Rcompare.ps"
+set title "HCP ISING J1=-0.3"
+plot "average_transport_no.dat" u 1:2 t "no" w p lt -1 pt 7,\
+"average_transport_relax.dat" u 1:2 t "relax" w p lt 3 pt 3
+
+EOF
+
+
+
+
+
+
+

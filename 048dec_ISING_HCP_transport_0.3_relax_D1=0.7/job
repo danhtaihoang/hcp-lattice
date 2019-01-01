@@ -1,0 +1,11 @@
+## Script
+#$ -N T048_0.3_0.7
+#$ -q seq_long
+#$ -l mem_free=500M
+#$ -m base
+#$ -M thesun2013@yahoo.com
+#$ -j y
+#$ -r y
+#$ -cwd
+./a.out
+
